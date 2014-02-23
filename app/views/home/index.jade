@@ -1,0 +1,33 @@
+extends ../layout
+
+block head-css
+    link(rel="stylesheet", href="components/bootstrap/dist/css/bootstrap.min.css")
+    link(rel="stylesheet", href="css/global.css")
+
+block content
+    .container(ng-controller="WemoController")
+        .row
+            .col-lg-12
+                nav.navbar.navbar-default(role="navigation")
+                    .container-fluid
+                        .navbar-header
+                            a.navbar-brand(href="#") Miller Mansion
+                        .collapse.navbar-collapse
+                            .nav.navbar-nav
+                                ul.nav.navbar-nav.navbar-right
+                                    li
+                                        button.btn.btn-default.navbar-btn(type="button", ng-click="toggleAll()") Toggle All
+        .row
+            .col-lg-12
+                ul#devices.list-group
+                    li.list-group-item(ng-repeat="s in switches", ng-click="toggleSwitch(s)")
+                        span {{s.details.device.friendlyName}}
+                        button.btn.btn-xs.pull-right(type="button", ng-click="toggleSwitch(s)", ng-class="{ 'btn-success': s.isOn, 'btn-default': !s.isOn }") {{s.friendlyState}}
+block content-js
+    script(type="text/javascript", src="/socket.io/socket.io.js")
+    script(type="text/javascript", src="components/angular/angular.min.js")
+    script(type="text/javascript", src="components/underscore/underscore.js")
+    script(type="text/javascript", src="components/jquery/jquery.min.js")
+    script(type="text/javascript", src="components/bootstrap/dist/js/bootstrap.min.js")
+    script(type="text/javascript", src="js/wemo.js")
+
