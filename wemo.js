@@ -2,7 +2,8 @@ var wemoNode        = require('wemonode'),
     socket          = require('socket.io'),
     _               = require('underscore'),
     http            = require('http'),
-    xml2js          = require('xml2js');
+    xml2js          = require('xml2js'),
+    os              = require('os');
 
 exports.sockets     = [];
 exports.switches    = [];
@@ -11,8 +12,9 @@ exports.wemo        = null;
 
 exports.listen      = function(server) {
 
-    exports.io = socket.listen(server);
-    exports.wemo = wemoNode.WemoNode()
+    exports.ip      = exports.getLocalIP();
+    exports.io      = socket.listen(server);
+    exports.wemo    = wemoNode.WemoNode()
 
     exports.io.sockets.on("connection", function(socket) {
 
@@ -48,14 +50,11 @@ exports.listen      = function(server) {
 
     });
 
-    exports.wemo.setBindAddress("192.168.1.147");
-    exports.wemo.startDiscovery();
-
     //Whenever a new device joins the network
     exports.wemo.on("device_found", function (device) {
 
         //Get the content from the device spec xml file
-        downloadUrlContent(device.location, function(content) {
+        exports.downloadUrlContent(device.location, function(content) {
 
             //parse the XML to JSON for easier consumption
             xml2js.parseString(content, {
@@ -97,10 +96,12 @@ exports.listen      = function(server) {
         
     });
 
+    exports.wemo.setBindAddress(exports.ip);
+    exports.wemo.startDiscovery();
 
 };
 
-var downloadUrlContent = function(url, callback) {
+exports.downloadUrlContent = function(url, callback) {
 
   http.get(url, function(res) {
 
@@ -119,3 +120,31 @@ var downloadUrlContent = function(url, callback) {
   });
 
 };
+
+exports.getLocalIP = function() {
+
+    var interfaces = os.networkInterfaces();
+
+    var addresses = _.map(interfaces, function(interface) {
+
+        return _.find(interface, function(address) {
+
+            return (address.family == "IPv4" && !address.internal);
+
+        });
+
+    });
+
+    var address = _.find(addresses, function(address) {
+    
+        return (address != null);
+    });
+
+    if(address == null) {
+        return null;
+    } else {
+        return address.address;
+    }
+
+};
+
